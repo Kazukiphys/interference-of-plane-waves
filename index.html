@@ -3,23 +3,25 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#edf0e9">
+  <meta name="theme-color" content="#eaf1f8">
   <title>平面波の干渉 | Wave Lab</title>
   <style>
     :root {
       color-scheme: light;
-      --paper: #edf0e9;
-      --panel: #f7f6ef;
-      --ink: #203632;
-      --muted: #71817a;
-      --line: #d8ded4;
-      --teal: #16796f;
-      --teal-soft: #d6e8df;
+      --paper: #eaf1f8;
+      --panel: #f2f6fb;
+      --ink: #26364e;
+      --muted: #718099;
+      --line: #d5dfec;
+      --indigo: #3b68a0;
+      --indigo-soft: #d8e4f4;
+      --control-surface: #e8eff8;
+      --control-rail: #d6e0ec;
       --coral: #d96650;
       --wave-blue: #347db9;
       --interference-green: #2b8756;
       --amber: #d5a63b;
-      --canvas: #f6f4ec;
+      --canvas: #f2f6fb;
       font-family: "Yu Gothic UI", "Meiryo", sans-serif;
       font-synthesis: none;
     }
@@ -75,7 +77,7 @@
       height: 27px;
       place-items: center;
       color: var(--panel);
-      background: var(--teal);
+      background: var(--indigo);
       border-radius: 50%;
     }
 
@@ -109,7 +111,7 @@
     }
 
     .section-index {
-      color: #9aa69e;
+      color: #8795ab;
       font-family: Georgia, serif;
       font-size: 11px;
       font-weight: 400;
@@ -123,7 +125,7 @@
       padding: 0;
       place-items: center;
       color: var(--ink);
-      background: #e9ede6;
+      background: var(--control-surface);
       border: 1px solid var(--line);
       border-radius: 3px;
       cursor: pointer;
@@ -131,7 +133,7 @@
       line-height: 1;
     }
     .source-count-control button:disabled { opacity: 0.4; cursor: not-allowed; }
-    .source-count-control output { min-width: 16px; color: var(--teal); text-align: center; font-size: 11px; }
+    .source-count-control output { min-width: 16px; color: var(--indigo); text-align: center; font-size: 11px; }
 
     .range-control { display: grid; gap: 8px; }
 
@@ -143,7 +145,7 @@
     }
 
     .range-value {
-      color: var(--teal);
+      color: var(--indigo);
       font-family: Georgia, serif;
       font-size: 17px;
       font-variant-numeric: tabular-nums;
@@ -167,17 +169,17 @@
 
     input[type="range"]::-webkit-slider-runnable-track {
       height: 3px;
-      background: linear-gradient(to right, var(--teal) 0 var(--progress), #d5ddd5 var(--progress) 100%);
+      background: linear-gradient(to right, var(--indigo) 0 var(--progress), var(--control-rail) var(--progress) 100%);
       border-radius: 3px;
     }
 
     input[type="range"]::-moz-range-track {
       height: 3px;
-      background: #d5ddd5;
+      background: var(--control-rail);
       border-radius: 3px;
     }
 
-    input[type="range"]::-moz-range-progress { height: 3px; background: var(--teal); }
+    input[type="range"]::-moz-range-progress { height: 3px; background: var(--indigo); }
 
     input[type="range"]::-webkit-slider-thumb {
       width: 13px;
@@ -185,7 +187,7 @@
       margin-top: -5px;
       appearance: none;
       background: var(--panel);
-      border: 2px solid var(--teal);
+      border: 2px solid var(--indigo);
       border-radius: 50%;
     }
 
@@ -193,7 +195,7 @@
       width: 10px;
       height: 10px;
       background: var(--panel);
-      border: 2px solid var(--teal);
+      border: 2px solid var(--indigo);
       border-radius: 50%;
     }
 
@@ -207,14 +209,14 @@
       grid-template-columns: 1fr 1fr;
       gap: 3px;
       padding: 3px;
-      background: #e9ede6;
+      background: var(--control-surface);
       border-radius: 5px;
     }
 
     .segmented button {
       min-height: 34px;
       padding: 6px 8px;
-      color: #65756e;
+      color: #60718a;
       background: transparent;
       border: 0;
       border-radius: 3px;
@@ -226,7 +228,7 @@
     .segmented button[aria-pressed="true"] {
       color: var(--ink);
       background: var(--panel);
-      box-shadow: 0 1px 3px #2036321c;
+      box-shadow: 0 1px 3px #26364e1c;
       font-weight: 700;
     }
 
@@ -241,19 +243,19 @@
       gap: 6px;
       min-height: 32px;
       padding: 5px 7px;
-      background: #f0f2ec;
+      background: var(--control-surface);
       border: 1px solid var(--line);
       border-radius: 3px;
-      color: #53665d;
+      color: #536b87;
       cursor: pointer;
       font-size: 10px;
       white-space: nowrap;
     }
 
-    .line-option input { width: 13px; height: 13px; margin: 0; accent-color: var(--teal); }
+    .line-option input { width: 13px; height: 13px; margin: 0; accent-color: var(--indigo); }
     .line-option input.node-toggle { accent-color: var(--coral); }
-    .line-swatch { width: 15px; height: 0; border-top: 2px solid var(--teal); }
-    .line-swatch.dashed { border-top-color: var(--coral); border-top-style: dashed; }
+    .line-swatch { width: 15px; height: 0; border-top: 2px solid var(--interference-green); }
+    .line-swatch.dashed { border-top-color: var(--interference-green); border-top-style: dashed; }
 
     .transport {
       display: grid;
@@ -277,9 +279,9 @@
       transition: background 140ms ease, border-color 140ms ease;
     }
 
-    .transport button:hover { background: #e9ede6; border-color: #b8c7bd; }
-    .transport .start { color: white; background: var(--teal); border-color: var(--teal); }
-    .transport .start:hover { background: #12685f; }
+    .transport button:hover { background: var(--control-surface); border-color: #bdcde0; }
+    .transport .start { color: white; background: var(--indigo); border-color: var(--indigo); }
+    .transport .start:hover { background: #31588f; }
     .transport .icon { font-size: 13px; line-height: 1; }
 
     .control-foot {
@@ -805,7 +807,7 @@
             displacement /= sources.length;
             const amount = Math.abs(displacement) * 0.42;
             const offset = (row * columns + column) * 4;
-            const target = displacement >= 0 ? [31, 139, 124] : [217, 102, 80];
+            const target = displacement >= 0 ? [52, 125, 185] : [217, 102, 80];
             image.data[offset] = 246 + (target[0] - 246) * amount;
             image.data[offset + 1] = 244 + (target[1] - 244) * amount;
             image.data[offset + 2] = 236 + (target[2] - 236) * amount;
