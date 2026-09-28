@@ -1,0 +1,1077 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#edf0e9">
+  <title>平面波の干渉 | Wave Lab</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #edf0e9;
+      --panel: #f7f6ef;
+      --ink: #203632;
+      --muted: #71817a;
+      --line: #d8ded4;
+      --teal: #16796f;
+      --teal-soft: #d6e8df;
+      --coral: #d96650;
+      --wave-blue: #347db9;
+      --interference-green: #2b8756;
+      --amber: #d5a63b;
+      --canvas: #f6f4ec;
+      font-family: "Yu Gothic UI", "Meiryo", sans-serif;
+      font-synthesis: none;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow: hidden;
+      color: var(--ink);
+      background: var(--paper);
+    }
+
+    button, input { font: inherit; }
+
+    .app-shell {
+      display: grid;
+      grid-template-columns: 318px minmax(0, 1fr);
+      width: 100%;
+      height: 100vh;
+      height: 100dvh;
+      min-height: 0;
+    }
+
+    .controls {
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      min-height: 0;
+      overflow: hidden;
+      padding: 26px 25px 22px;
+      background: var(--panel);
+      border-right: 1px solid var(--line);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.1px;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 27px;
+      height: 27px;
+      place-items: center;
+      color: var(--panel);
+      background: var(--teal);
+      border-radius: 50%;
+    }
+
+    .brand-mark svg { width: 16px; height: 16px; }
+
+    h1 {
+      margin: 17px 0 0;
+      font-family: Georgia, "Yu Mincho", serif;
+      font-size: 27px;
+      font-weight: 500;
+      letter-spacing: 0;
+      line-height: 1.3;
+    }
+
+    .eyebrow {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .section { display: grid; gap: 14px; }
+
+    .section-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 9px;
+      border-bottom: 1px solid var(--line);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .section-index {
+      color: #9aa69e;
+      font-family: Georgia, serif;
+      font-size: 11px;
+      font-weight: 400;
+    }
+
+    .source-count-control { display: flex; align-items: center; gap: 5px; }
+    .source-count-control button {
+      display: grid;
+      width: 22px;
+      height: 22px;
+      padding: 0;
+      place-items: center;
+      color: var(--ink);
+      background: #e9ede6;
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 15px;
+      line-height: 1;
+    }
+    .source-count-control button:disabled { opacity: 0.4; cursor: not-allowed; }
+    .source-count-control output { min-width: 16px; color: var(--teal); text-align: center; font-size: 11px; }
+
+    .range-control { display: grid; gap: 8px; }
+
+    .range-label {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+
+    .range-value {
+      color: var(--teal);
+      font-family: Georgia, serif;
+      font-size: 17px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .range-value small {
+      margin-left: 2px;
+      color: var(--muted);
+      font-family: "Yu Gothic UI", "Meiryo", sans-serif;
+      font-size: 10px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 18px;
+      margin: 0;
+      appearance: none;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 3px;
+      background: linear-gradient(to right, var(--teal) 0 var(--progress), #d5ddd5 var(--progress) 100%);
+      border-radius: 3px;
+    }
+
+    input[type="range"]::-moz-range-track {
+      height: 3px;
+      background: #d5ddd5;
+      border-radius: 3px;
+    }
+
+    input[type="range"]::-moz-range-progress { height: 3px; background: var(--teal); }
+
+    input[type="range"]::-webkit-slider-thumb {
+      width: 13px;
+      height: 13px;
+      margin-top: -5px;
+      appearance: none;
+      background: var(--panel);
+      border: 2px solid var(--teal);
+      border-radius: 50%;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 10px;
+      height: 10px;
+      background: var(--panel);
+      border: 2px solid var(--teal);
+      border-radius: 50%;
+    }
+
+    input[type="range"]:focus-visible, button:focus-visible {
+      outline: 3px solid #d5a63b;
+      outline-offset: 3px;
+    }
+
+    .segmented {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3px;
+      padding: 3px;
+      background: #e9ede6;
+      border-radius: 5px;
+    }
+
+    .segmented button {
+      min-height: 34px;
+      padding: 6px 8px;
+      color: #65756e;
+      background: transparent;
+      border: 0;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 11px;
+      transition: color 140ms ease, background 140ms ease, box-shadow 140ms ease;
+    }
+
+    .segmented button[aria-pressed="true"] {
+      color: var(--ink);
+      background: var(--panel);
+      box-shadow: 0 1px 3px #2036321c;
+      font-weight: 700;
+    }
+
+    .view-switch button { min-height: 39px; }
+
+    .line-toggles { display: flex; gap: 8px; }
+
+    .line-option {
+      display: flex;
+      flex: 1;
+      align-items: center;
+      gap: 6px;
+      min-height: 32px;
+      padding: 5px 7px;
+      background: #f0f2ec;
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      color: #53665d;
+      cursor: pointer;
+      font-size: 10px;
+      white-space: nowrap;
+    }
+
+    .line-option input { width: 13px; height: 13px; margin: 0; accent-color: var(--teal); }
+    .line-option input.node-toggle { accent-color: var(--coral); }
+    .line-swatch { width: 15px; height: 0; border-top: 2px solid var(--teal); }
+    .line-swatch.dashed { border-top-color: var(--coral); border-top-style: dashed; }
+
+    .transport {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1fr;
+      gap: 7px;
+    }
+
+    .transport button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: 40px;
+      padding: 7px 6px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: transparent;
+      color: var(--ink);
+      cursor: pointer;
+      font-size: 11px;
+      transition: background 140ms ease, border-color 140ms ease;
+    }
+
+    .transport button:hover { background: #e9ede6; border-color: #b8c7bd; }
+    .transport .start { color: white; background: var(--teal); border-color: var(--teal); }
+    .transport .start:hover { background: #12685f; }
+    .transport .icon { font-size: 13px; line-height: 1; }
+
+    .control-foot {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: auto;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .foot-dot { width: 7px; height: 7px; background: var(--amber); border-radius: 50%; }
+
+    .workspace {
+      display: flex;
+      min-width: 0;
+      min-height: 0;
+      flex-direction: column;
+      padding: 21px 25px 17px;
+    }
+
+    .workspace-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 34px;
+      padding: 0 1px 13px;
+    }
+
+    .workspace-label {
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    .workspace-meta { display: flex; align-items: center; gap: 16px; }
+
+    .author {
+      color: #64766d;
+      font-family: Georgia, "Yu Mincho", serif;
+      font-size: 12px;
+      font-style: italic;
+    }
+
+    .live-state {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .live-state span { width: 6px; height: 6px; background: #a7b4aa; border-radius: 50%; }
+    .live-state.is-running span { background: var(--coral); box-shadow: 0 0 0 3px #d966501c; }
+
+    .stage {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+      background: var(--canvas);
+      border: 1px solid #dce1d8;
+      border-radius: 3px;
+    }
+
+    #waveCanvas { display: block; width: 100%; height: 100%; cursor: grab; touch-action: none; }
+
+    .stage-label {
+      position: absolute;
+      top: 16px;
+      left: 17px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: #72827a;
+      font-size: 10px;
+      pointer-events: none;
+    }
+
+    .stage-label::before { width: 6px; height: 6px; content: ""; background: var(--amber); border-radius: 50%; }
+
+    .phase-chip {
+      position: absolute;
+      top: 13px;
+      right: 14px;
+      padding: 6px 9px;
+      color: #5a6b63;
+      background: #f7f6efdc;
+      border: 1px solid #dce1d8;
+      border-radius: 3px;
+      font-size: 10px;
+      pointer-events: none;
+    }
+
+    .stage-bottom {
+      position: absolute;
+      right: 14px;
+      bottom: 13px;
+      left: 15px;
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      pointer-events: none;
+    }
+
+    .time-readout {
+      color: #53665d;
+      font-family: Georgia, serif;
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .legend { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px 15px; max-width: 78%; color: #53665d; font-size: 10px; }
+    .legend-item { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+    .legend-line { width: 20px; height: 0; border-top: 2px solid var(--interference-green); }
+    .legend-line.dashed { border-top-color: var(--interference-green); border-top-style: dashed; }
+    .wave-swatch { width: 18px; height: 0; border-top: 2px solid var(--ink); }
+    .wave-swatch.dashed { border-top-style: dashed; }
+    .legend-dot { width: 7px; height: 7px; background: var(--coral); border-radius: 50%; }
+    .legend-dot.second { background: var(--wave-blue); }
+
+    .workspace-foot {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 11px 2px 0;
+      color: #8a9890;
+      font-size: 10px;
+    }
+
+    .workspace-foot span:last-child { font-family: Georgia, serif; }
+
+    @media (max-width: 800px) {
+      .app-shell { grid-template-columns: 275px minmax(0, 1fr); }
+      .controls { padding-right: 19px; padding-left: 19px; }
+      .workspace { padding-right: 15px; padding-left: 15px; }
+      .legend { gap: 9px; }
+    }
+
+    @media (max-width: 650px) {
+      body { min-height: 100dvh; overflow-x: hidden; overflow-y: auto; }
+      .app-shell { display: flex; height: auto; min-height: 100dvh; flex-direction: column; }
+      .controls { gap: 19px; padding: 18px 19px; border-right: 0; border-bottom: 1px solid var(--line); }
+      .identity { display: grid; grid-template-columns: 1fr auto; align-items: end; }
+      .brand { grid-column: 1 / -1; }
+      h1 { margin-top: 9px; font-size: 23px; }
+      .eyebrow { margin-bottom: 2px; }
+      .section { gap: 11px; }
+      .workspace { min-height: 490px; height: 58svh; padding: 14px 12px 12px; }
+      .stage { min-height: 400px; }
+      .legend { gap: 8px; font-size: 9px; }
+      .workspace-foot { font-size: 9px; }
+      .stage-bottom { right: 10px; left: 10px; }
+    }
+
+    @media (max-width: 390px) {
+      .legend { gap: 6px; font-size: 8px; }
+      .legend-line { width: 14px; }
+      .workspace { min-height: 460px; }
+    }
+
+    @media (max-height: 950px) and (min-width: 651px) {
+      .controls { gap: 17px; padding-top: 19px; padding-bottom: 17px; }
+      .workspace { padding-top: 15px; padding-bottom: 12px; }
+      .section { gap: 10px; }
+      .section-heading { padding-bottom: 6px; }
+      .range-control { gap: 5px; }
+      .transport button { min-height: 36px; }
+    }
+
+    @media (max-height: 650px) and (min-width: 651px) {
+      .controls { gap: 9px; padding: 10px 18px; }
+      h1 { margin-top: 7px; font-size: 22px; }
+      .eyebrow { margin-top: 2px; font-size: 10px; }
+      .section { gap: 7px; }
+      .section-heading { padding-bottom: 4px; }
+      .range-control { gap: 3px; }
+      .range-value { font-size: 15px; }
+      input[type="range"] { height: 15px; }
+      .segmented button { min-height: 29px; }
+      .view-switch button { min-height: 32px; }
+      .line-option { min-height: 27px; }
+      .transport button { min-height: 31px; }
+      .control-foot { gap: 5px; padding-top: 6px; font-size: 9px; }
+      .workspace { padding-top: 8px; padding-bottom: 7px; }
+      .workspace-head { min-height: 27px; padding-bottom: 7px; }
+      .workspace-foot { padding-top: 6px; }
+    }
+
+    @media (max-height: 490px) and (min-width: 651px) {
+      .controls { gap: 5px; padding: 6px 14px; }
+      .brand-mark { width: 22px; height: 22px; }
+      h1 { margin-top: 4px; font-size: 20px; }
+      .eyebrow { display: none; }
+      .section { gap: 4px; }
+      .section-heading { padding-bottom: 2px; font-size: 11px; }
+      .range-control { gap: 1px; }
+      .range-label { font-size: 11px; }
+      .range-value { font-size: 14px; }
+      input[type="range"] { height: 13px; }
+      .segmented { padding: 2px; }
+      .segmented button { min-height: 25px; padding: 4px; }
+      .view-switch button { min-height: 27px; }
+      .line-option { min-height: 23px; padding: 3px 5px; font-size: 9px; }
+      .transport { gap: 5px; }
+      .transport button { min-height: 27px; padding: 4px; }
+      .control-foot { padding-top: 4px; font-size: 8px; }
+    }
+
+    @media (max-height: 600px) and (min-width: 651px) and (pointer: coarse) {
+      body { overflow-y: auto; }
+      .app-shell { height: auto; min-height: 650px; }
+      .controls { overflow: visible; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <aside class="controls" aria-label="シミュレーション設定">
+      <header class="identity">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="2" fill="currentColor"/><path d="M6.5 7.5a6.4 6.4 0 0 0 0 9M17.5 7.5a6.4 6.4 0 0 1 0 9M3.5 4.5a10.6 10.6 0 0 0 0 15M20.5 4.5a10.6 10.6 0 0 1 0 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </span>
+          WAVE LAB <span> / </span> PHYSICS
+        </div>
+        <div>
+          <h1>平面波の干渉</h1>
+          <p class="eyebrow">2つの波源から広がる波</p>
+        </div>
+      </header>
+
+      <section class="section" aria-labelledby="conditions-title">
+        <div class="section-heading">
+          <span id="conditions-title">波の条件</span>
+          <div class="source-count-control" aria-label="波源の数">
+            <button id="removeSource" type="button" aria-label="波源を1つ減らす" title="波源を1つ減らす">−</button>
+            <output id="sourceCount" aria-live="polite">2</output>
+            <button id="addSource" type="button" aria-label="波源を1つ追加" title="波源を1つ追加">+</button>
+          </div>
+        </div>
+        <label class="range-control" for="separation">
+          <span class="range-label"><span>波源間の距離</span><span class="range-value"><output id="separationValue">4.0</output><small>m</small></span></span>
+          <input id="separation" type="range" min="0.1" max="32" step="0.1" value="4.0" aria-label="波源間の距離">
+        </label>
+        <label class="range-control" for="wavelength">
+          <span class="range-label"><span>波長</span><span class="range-value"><output id="wavelengthValue">1.6</output><small>m</small></span></span>
+          <input id="wavelength" type="range" min="0.8" max="3.2" step="0.1" value="1.6" aria-label="波長">
+        </label>
+        <label class="range-control" for="frequency">
+          <span class="range-label"><span>振動数</span><span class="range-value"><output id="frequencyValue">0.63</output><small>Hz</small></span></span>
+          <input id="frequency" type="range" min="0.125" max="1.625" step="0.025" value="0.625" aria-label="振動数">
+        </label>
+        <div class="range-control">
+          <span class="range-label" id="phaseLabel">波源の位相</span>
+          <div class="segmented" role="group" aria-labelledby="phaseLabel">
+            <button type="button" data-phase="0" aria-pressed="true">同位相</button>
+            <button type="button" data-phase="1" aria-pressed="false">逆位相</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="view-title">
+        <div class="section-heading"><span id="view-title">波の表示</span><span class="section-index">02</span></div>
+        <div class="segmented view-switch" role="group" aria-labelledby="view-title">
+          <button type="button" data-view="individual" aria-pressed="true">個別波面</button>
+          <button type="button" data-view="combined" aria-pressed="false">合成波</button>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="line-title">
+        <div class="section-heading"><span id="line-title">干渉線</span><span class="section-index">03</span></div>
+        <div class="line-toggles">
+          <label class="line-option"><input id="showAntinodes" type="checkbox"><i class="line-swatch" aria-hidden="true"></i>腹線</label>
+          <label class="line-option"><input class="node-toggle" id="showNodes" type="checkbox"><i class="line-swatch dashed" aria-hidden="true"></i>節線</label>
+        </div>
+      </section>
+
+      <section class="section" aria-label="再生操作">
+        <div class="section-heading"><span>時間</span><span class="section-index">04</span></div>
+        <div class="transport">
+          <button class="start" id="startButton" type="button"><span class="icon" aria-hidden="true">▶</span>スタート</button>
+          <button id="pauseButton" type="button"><span class="icon" aria-hidden="true">Ⅱ</span>一時停止</button>
+          <button id="resetButton" type="button"><span class="icon" aria-hidden="true">↺</span>リセット</button>
+        </div>
+      </section>
+
+      <div class="control-foot"><span class="foot-dot"></span><span>波の速さ <strong id="speedValue">1.0</strong> m/s</span></div>
+    </aside>
+
+    <section class="workspace" aria-label="波のシミュレーション">
+      <header class="workspace-head">
+        <span class="workspace-label">WAVE FIELD</span>
+        <div class="workspace-meta">
+          <em class="author">by K.Kitaoka</em>
+          <span class="live-state" id="liveState"><span></span><b id="stateText">停止中</b></span>
+        </div>
+      </header>
+      <div class="stage">
+        <canvas id="waveCanvas" aria-label="波源マーカーをドラッグして移動できます。2つの波源による波の伝わり方と干渉の表示"></canvas>
+        <div class="stage-label" id="modeLabel">個別波面</div>
+        <div class="phase-chip" id="phaseChip">同位相</div>
+        <div class="stage-bottom">
+          <span class="time-readout">t = <output id="timeValue">0.0</output> s</span>
+          <div class="legend" id="legend">
+            <span class="legend-item"><i class="legend-dot"></i>波源 1</span>
+            <span class="legend-item"><i class="legend-dot second"></i>波源 2</span>
+          </div>
+        </div>
+      </div>
+      <footer class="workspace-foot"><span id="footerCaption">波源から同心円状に広がる波面</span><span>c = <output id="canvasSpeedValue">1.0</output> m/s</span></footer>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const canvas = document.getElementById("waveCanvas");
+      const context = canvas.getContext("2d");
+      const separationInput = document.getElementById("separation");
+      const wavelengthInput = document.getElementById("wavelength");
+      const frequencyInput = document.getElementById("frequency");
+      const separationValue = document.getElementById("separationValue");
+      const wavelengthValue = document.getElementById("wavelengthValue");
+      const frequencyValue = document.getElementById("frequencyValue");
+      const speedValue = document.getElementById("speedValue");
+      const canvasSpeedValue = document.getElementById("canvasSpeedValue");
+      const timeValue = document.getElementById("timeValue");
+      const phaseChip = document.getElementById("phaseChip");
+      const modeLabel = document.getElementById("modeLabel");
+      const footerCaption = document.getElementById("footerCaption");
+      const legend = document.getElementById("legend");
+      const liveState = document.getElementById("liveState");
+      const stateText = document.getElementById("stateText");
+      const showAntinodes = document.getElementById("showAntinodes");
+      const showNodes = document.getElementById("showNodes");
+      const sourceCountOutput = document.getElementById("sourceCount");
+      const addSourceButton = document.getElementById("addSource");
+      const removeSourceButton = document.getElementById("removeSource");
+
+      const state = {
+        time: 0,
+        running: false,
+        started: false,
+        phase: 0,
+        view: "individual",
+        lastFrame: 0,
+        sources: [{ x: -2, y: 0 }, { x: 2, y: 0 }],
+        draggingSource: null
+      };
+      const sourceColors = ["#d96650", "#347db9", "#8a69a8", "#bd8d21", "#39845d", "#cb6684"];
+      const maxSourceCount = sourceColors.length;
+      let width = 0;
+      let height = 0;
+      let pixelRatio = 1;
+
+      function syncRangeFill(input) {
+        const progress = (Number(input.value) - Number(input.min)) / (Number(input.max) - Number(input.min)) * 100;
+          input.style.setProperty("--progress", `${progress}%`);
+      }
+
+      function currentWaveSpeed() {
+        return Number(frequencyInput.value) * Number(wavelengthInput.value);
+      }
+
+      function sourceColor(index) {
+        return sourceColors[index % sourceColors.length];
+      }
+
+      function sourceDistance() {
+        const [source1, source2] = state.sources;
+        return Math.hypot(source2.x - source1.x, source2.y - source1.y);
+      }
+
+      function setSourceDistance(distance) {
+        const [source1, source2] = state.sources;
+        const deltaX = source2.x - source1.x;
+        const deltaY = source2.y - source1.y;
+        const currentDistance = Math.hypot(deltaX, deltaY);
+        const midpointX = (source1.x + source2.x) / 2;
+        const midpointY = (source1.y + source2.y) / 2;
+        const halfDistance = distance / 2;
+        const directionX = currentDistance ? deltaX / currentDistance : 1;
+        const directionY = currentDistance ? deltaY / currentDistance : 0;
+        source1.x = midpointX - directionX * halfDistance;
+        source1.y = midpointY - directionY * halfDistance;
+        source2.x = midpointX + directionX * halfDistance;
+        source2.y = midpointY + directionY * halfDistance;
+      }
+
+      function syncDistanceControl() {
+        const actualDistance = sourceDistance();
+        const min = Number(separationInput.min);
+        const max = Number(separationInput.max);
+        separationInput.value = String(Math.max(min, Math.min(max, actualDistance)).toFixed(1));
+        updateLabels();
+      }
+
+      function resetWaveTimeAfterSourceChange() {
+        state.time = 0;
+        state.lastFrame = 0;
+      }
+
+      function addSource() {
+        if (state.sources.length >= maxSourceCount) return;
+        const [source1, source2] = state.sources;
+        const centerX = (source1.x + source2.x) / 2;
+        const centerY = (source1.y + source2.y) / 2;
+        const angle = -Math.PI / 2 + (state.sources.length - 2) * Math.PI / 3;
+        const radius = Math.max(sourceDistance() * 0.8, Number(wavelengthInput.value));
+        state.sources.push({ x: centerX + Math.cos(angle) * radius, y: centerY + Math.sin(angle) * radius });
+        resetWaveTimeAfterSourceChange();
+        updateLabels();
+        draw();
+      }
+
+      function removeSource() {
+        if (state.sources.length <= 2) return;
+        state.sources.pop();
+        state.draggingSource = null;
+        canvas.style.cursor = "grab";
+        resetWaveTimeAfterSourceChange();
+        updateLabels();
+        draw();
+      }
+
+      function updateLabels() {
+        separationValue.value = sourceDistance().toFixed(1);
+        wavelengthValue.value = Number(wavelengthInput.value).toFixed(1);
+        frequencyValue.value = Number(frequencyInput.value).toFixed(2);
+        const speedLabel = currentWaveSpeed().toFixed(1);
+        speedValue.textContent = speedLabel;
+        canvasSpeedValue.textContent = speedLabel;
+        canvas.setAttribute("aria-label", `${state.sources.length}つの波源マーカーをドラッグして移動できます。波の伝わり方と干渉の表示`);
+        phaseChip.textContent = state.phase === 0 ? "同位相" : "逆位相";
+        modeLabel.textContent = state.view === "individual" ? "個別波面" : "合成波・干渉パターン";
+        footerCaption.textContent = state.view === "individual"
+          ? "波源から同心円状に広がる波面"
+          : state.sources.length > 2
+            ? "波源ペアごとに実線：腹線　／　破線：節線"
+            : "実線：腹線　／　破線：節線";
+        const legendItems = [];
+        if (state.view === "individual") {
+          state.sources.forEach((source, index) => {
+            legendItems.push(`<span class="legend-item"><i class="legend-dot" style="background:${sourceColor(index)}"></i>波源 ${index + 1}</span>`);
+          });
+          legendItems.push('<span class="legend-item"><i class="wave-swatch"></i>山</span>');
+          legendItems.push('<span class="legend-item"><i class="wave-swatch dashed"></i>谷</span>');
+        }
+        if (showAntinodes.checked) legendItems.push('<span class="legend-item"><i class="legend-line"></i>腹線</span>');
+        if (showNodes.checked) legendItems.push('<span class="legend-item"><i class="legend-line dashed"></i>節線</span>');
+        legend.innerHTML = legendItems.join("");
+        sourceCountOutput.textContent = String(state.sources.length);
+        removeSourceButton.disabled = state.sources.length <= 2;
+        addSourceButton.disabled = state.sources.length >= maxSourceCount;
+        syncRangeFill(separationInput);
+        syncRangeFill(wavelengthInput);
+        syncRangeFill(frequencyInput);
+      }
+
+      function resizeCanvas() {
+        const bounds = canvas.getBoundingClientRect();
+        if (!bounds.width || !bounds.height) return;
+        width = bounds.width;
+        height = bounds.height;
+        pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.round(width * pixelRatio);
+        canvas.height = Math.round(height * pixelRatio);
+        context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+        draw();
+      }
+
+      function drawGrid() {
+        context.fillStyle = "#f6f4ec";
+        context.fillRect(0, 0, width, height);
+        context.save();
+        context.strokeStyle = "#e8e8df";
+        context.lineWidth = 1;
+        const step = Math.max(24, Math.round(Math.min(width, height) / 17));
+        for (let x = width / 2 % step; x < width; x += step) {
+          context.beginPath(); context.moveTo(x, 0); context.lineTo(x, height); context.stroke();
+        }
+        for (let y = height / 2 % step; y < height; y += step) {
+          context.beginPath(); context.moveTo(0, y); context.lineTo(width, y); context.stroke();
+        }
+        context.restore();
+      }
+
+      function drawCombinedField(sources, centerY, scale, wavelength) {
+        const sampleStep = 5;
+        const columns = Math.ceil(width / sampleStep);
+        const rows = Math.ceil(height / sampleStep);
+        const offscreen = document.createElement("canvas");
+        offscreen.width = columns;
+        offscreen.height = rows;
+        const offContext = offscreen.getContext("2d");
+        const image = offContext.createImageData(columns, rows);
+        const phase = state.phase * Math.PI;
+        const waveNumber = 2 * Math.PI / wavelength;
+        const frequency = Number(frequencyInput.value);
+        const waveSpeed = currentWaveSpeed();
+        const timePhase = 2 * Math.PI * frequency * state.time;
+
+        for (let row = 0; row < rows; row++) {
+          const y = (row * sampleStep - centerY) / scale;
+          for (let column = 0; column < columns; column++) {
+            const x = (column * sampleStep - width / 2) / scale;
+            let displacement = 0;
+            for (let sourceIndex = 0; sourceIndex < sources.length; sourceIndex++) {
+              const source = sources[sourceIndex];
+              const radius = Math.hypot(x - source.x, y - source.y);
+              if (radius <= waveSpeed * state.time) {
+                const sourcePhase = sourceIndex === 0 ? 0 : phase;
+                displacement += Math.sin(waveNumber * radius - timePhase + sourcePhase);
+              }
+            }
+            displacement /= sources.length;
+            const amount = Math.abs(displacement) * 0.42;
+            const offset = (row * columns + column) * 4;
+            const target = displacement >= 0 ? [31, 139, 124] : [217, 102, 80];
+            image.data[offset] = 246 + (target[0] - 246) * amount;
+            image.data[offset + 1] = 244 + (target[1] - 244) * amount;
+            image.data[offset + 2] = 236 + (target[2] - 236) * amount;
+            image.data[offset + 3] = 255;
+          }
+        }
+        offContext.putImageData(image, 0, 0);
+        context.imageSmoothingEnabled = true;
+        context.drawImage(offscreen, 0, 0, width, height);
+      }
+
+      function drawContours(sources, centerX, centerY, scale, wavelength) {
+        const gridStep = sources.length > 2 ? 16 : 8;
+        for (let firstIndex = 0; firstIndex < sources.length - 1; firstIndex++) {
+          for (let secondIndex = firstIndex + 1; secondIndex < sources.length; secondIndex++) {
+            const phaseDifference = firstIndex === 0 ? state.phase : secondIndex === 0 ? state.phase : 0;
+            drawPairContours(sources[firstIndex], sources[secondIndex], phaseDifference, centerX, centerY, scale, wavelength, gridStep);
+          }
+        }
+      }
+
+      function drawPairContours(source1, source2, phaseDifference, centerX, centerY, scale, wavelength, gridStep) {
+        const columns = Math.ceil(width / gridStep) + 1;
+        const rows = Math.ceil(height / gridStep) + 1;
+        const differences = new Float32Array(columns * rows);
+        for (let row = 0; row < rows; row++) {
+          const y = (Math.min(row * gridStep, height) - centerY) / scale;
+          for (let column = 0; column < columns; column++) {
+            const x = (Math.min(column * gridStep, width) - width / 2) / scale;
+            differences[row * columns + column] = Math.hypot(x - source1.x, y - source1.y)
+              - Math.hypot(x - source2.x, y - source2.y);
+          }
+        }
+
+        const phaseOffset = phaseDifference * wavelength / 2;
+        const maxDifference = Math.hypot(source2.x - source1.x, source2.y - source1.y);
+        const contours = [];
+        for (let order = -Math.ceil(maxDifference / wavelength) - 1; order <= Math.ceil(maxDifference / wavelength) + 1; order++) {
+          const constructive = order * wavelength - phaseOffset;
+          if (showAntinodes.checked && Math.abs(constructive) <= maxDifference + 0.01) contours.push({ value: constructive, type: "antinode" });
+          const destructive = (order + 0.5) * wavelength - phaseOffset;
+          if (showNodes.checked && Math.abs(destructive) <= maxDifference + 0.01) contours.push({ value: destructive, type: "node" });
+        }
+
+        const arrivalRadius = currentWaveSpeed() * state.time * scale;
+        context.save();
+        [source1, source2].forEach((source) => {
+          context.beginPath();
+          context.arc(centerX + source.x * scale, centerY + source.y * scale, arrivalRadius, 0, Math.PI * 2);
+          context.clip();
+        });
+        for (const contour of contours) {
+          context.beginPath();
+          context.strokeStyle = "#2b8756";
+          context.lineWidth = 1.6;
+          context.setLineDash(contour.type === "antinode" ? [] : [6, 5]);
+          for (let row = 0; row < rows - 1; row++) {
+            for (let column = 0; column < columns - 1; column++) {
+              const x = column * gridStep;
+              const y = row * gridStep;
+              const corners = [
+                { x, y, value: differences[row * columns + column] },
+                { x: Math.min(x + gridStep, width), y, value: differences[row * columns + column + 1] },
+                { x: Math.min(x + gridStep, width), y: Math.min(y + gridStep, height), value: differences[(row + 1) * columns + column + 1] },
+                { x, y: Math.min(y + gridStep, height), value: differences[(row + 1) * columns + column] }
+              ];
+              const intersections = [];
+              for (let edge = 0; edge < 4; edge++) {
+                const start = corners[edge];
+                const end = corners[(edge + 1) % 4];
+                if ((start.value < contour.value && end.value >= contour.value) || (end.value < contour.value && start.value >= contour.value)) {
+                  const fraction = (contour.value - start.value) / (end.value - start.value);
+                  intersections.push({ x: start.x + (end.x - start.x) * fraction, y: start.y + (end.y - start.y) * fraction });
+                }
+              }
+              for (let index = 0; index + 1 < intersections.length; index += 2) {
+                context.moveTo(intersections[index].x, intersections[index].y);
+                context.lineTo(intersections[index + 1].x, intersections[index + 1].y);
+              }
+            }
+          }
+          context.stroke();
+        }
+        context.setLineDash([]);
+        context.restore();
+      }
+
+      function drawWavefronts(sources, centerX, centerY, scale, wavelength) {
+        const positions = sources.map((source) => ({
+          x: centerX + source.x * scale,
+          y: centerY + source.y * scale
+        }));
+        const maxRadius = currentWaveSpeed() * state.time;
+
+        positions.forEach((position, sourceIndex) => {
+          const phaseFraction = sourceIndex === 0 ? 0 : state.phase / 2;
+          context.save();
+          context.strokeStyle = sourceColor(sourceIndex);
+          context.lineWidth = 1.7;
+          const drawRing = (radius, dashed) => {
+            if (radius < 0 || radius > maxRadius) return;
+            const pixelRadius = Math.max(radius * scale, 0.8);
+            context.globalAlpha = maxRadius > 0 ? 0.28 + 0.55 * (1 - radius / maxRadius) : 0.83;
+            if (dashed) {
+              const dashPeriod = 2 * Math.PI * pixelRadius / 16;
+              context.setLineDash([dashPeriod * 0.58, dashPeriod * 0.42]);
+            } else {
+              context.setLineDash([]);
+            }
+            context.beginPath();
+            context.arc(position.x, position.y, pixelRadius, 0, Math.PI * 2);
+            context.stroke();
+          };
+          for (let order = 0; order <= Math.ceil(maxRadius / wavelength) + 1; order++) {
+            const phaseAdjustedRadius = maxRadius + wavelength * phaseFraction;
+            drawRing(phaseAdjustedRadius - wavelength * order, false);
+            drawRing(phaseAdjustedRadius - wavelength * (order + 0.5), true);
+          }
+          context.setLineDash([]);
+          context.restore();
+        });
+      }
+
+      function drawSourceMarkers(sources, centerX, centerY, scale) {
+        const positions = sources.map((source) => ({
+          x: centerX + source.x * scale,
+          y: centerY + source.y * scale
+        }));
+        positions.forEach((position, sourceIndex) => {
+          context.save();
+          context.fillStyle = sourceColor(sourceIndex);
+          context.beginPath();
+          context.arc(position.x, position.y, 5, 0, Math.PI * 2);
+          context.fill();
+          context.restore();
+        });
+      }
+
+      function draw() {
+        if (!width || !height) return;
+        const wavelength = Number(wavelengthInput.value);
+        const scale = Math.min(width, height) / 12;
+        const centerX = width / 2;
+        const centerY = height / 2;
+        const [source1, source2] = state.sources;
+
+        if (state.started && state.view === "combined") drawCombinedField(state.sources, centerY, scale, wavelength);
+        else drawGrid();
+
+        if (state.started && (showAntinodes.checked || showNodes.checked)) drawContours(state.sources, centerX, centerY, scale, wavelength);
+        if (state.started && state.view === "individual") drawWavefronts(state.sources, centerX, centerY, scale, wavelength);
+        drawSourceMarkers(state.sources, centerX, centerY, scale);
+        timeValue.value = state.time.toFixed(1);
+      }
+
+      function animate(timestamp) {
+        if (!state.running) return;
+        if (state.lastFrame) state.time += Math.min((timestamp - state.lastFrame) / 1000, 0.05);
+        state.lastFrame = timestamp;
+        draw();
+        requestAnimationFrame(animate);
+      }
+
+      function setRunning(running) {
+        if (state.running === running) return;
+        state.running = running;
+        state.lastFrame = 0;
+        liveState.classList.toggle("is-running", running);
+        stateText.textContent = running ? "再生中" : "停止中";
+        if (running) requestAnimationFrame(animate);
+      }
+
+      separationInput.addEventListener("input", () => {
+        setSourceDistance(Number(separationInput.value));
+        updateLabels();
+        draw();
+      });
+      addSourceButton.addEventListener("click", addSource);
+      removeSourceButton.addEventListener("click", removeSource);
+      wavelengthInput.addEventListener("input", () => { updateLabels(); draw(); });
+      frequencyInput.addEventListener("input", () => { updateLabels(); draw(); });
+      showAntinodes.addEventListener("change", () => { updateLabels(); draw(); });
+      showNodes.addEventListener("change", () => { updateLabels(); draw(); });
+
+      document.querySelectorAll("[data-phase]").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.phase = Number(button.dataset.phase);
+          document.querySelectorAll("[data-phase]").forEach((item) => item.setAttribute("aria-pressed", String(item === button)));
+          updateLabels();
+          draw();
+        });
+      });
+
+      document.querySelectorAll("[data-view]").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.view = button.dataset.view;
+          document.querySelectorAll("[data-view]").forEach((item) => item.setAttribute("aria-pressed", String(item === button)));
+          updateLabels();
+          draw();
+        });
+      });
+
+      canvas.addEventListener("pointerdown", (event) => {
+        const bounds = canvas.getBoundingClientRect();
+        const scale = Math.min(bounds.width, bounds.height) / 12;
+        const localX = event.clientX - bounds.left;
+        const localY = event.clientY - bounds.top;
+        let nearestSource = null;
+        let nearestDistance = 18;
+
+        state.sources.forEach((source, index) => {
+          const sourceX = bounds.width / 2 + source.x * scale;
+          const sourceY = bounds.height / 2 + source.y * scale;
+          const distance = Math.hypot(localX - sourceX, localY - sourceY);
+          if (distance <= nearestDistance) {
+            nearestSource = index;
+            nearestDistance = distance;
+          }
+        });
+
+        if (nearestSource === null) return;
+        event.preventDefault();
+        state.draggingSource = nearestSource;
+        canvas.style.cursor = "grabbing";
+        canvas.setPointerCapture(event.pointerId);
+      });
+
+      canvas.addEventListener("pointermove", (event) => {
+        if (state.draggingSource === null) return;
+        const bounds = canvas.getBoundingClientRect();
+        const scale = Math.min(bounds.width, bounds.height) / 12;
+        const source = state.sources[state.draggingSource];
+        source.x = (event.clientX - bounds.left - bounds.width / 2) / scale;
+        source.y = (event.clientY - bounds.top - bounds.height / 2) / scale;
+        syncDistanceControl();
+        draw();
+      });
+
+      const finishSourceDrag = (event) => {
+        if (state.draggingSource === null) return;
+        state.draggingSource = null;
+        canvas.style.cursor = "grab";
+        if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+      };
+
+      canvas.addEventListener("pointerup", finishSourceDrag);
+      canvas.addEventListener("pointercancel", finishSourceDrag);
+
+      document.getElementById("startButton").addEventListener("click", () => {
+        state.started = true;
+        draw();
+        setRunning(true);
+      });
+      document.getElementById("pauseButton").addEventListener("click", () => setRunning(false));
+      document.getElementById("resetButton").addEventListener("click", () => {
+        setRunning(false);
+        state.time = 0;
+        state.started = false;
+        draw();
+      });
+
+      window.addEventListener("resize", resizeCanvas);
+      updateLabels();
+      new ResizeObserver(resizeCanvas).observe(canvas);
+      resizeCanvas();
+    })();
+  </script>
+</body>
+</html>
