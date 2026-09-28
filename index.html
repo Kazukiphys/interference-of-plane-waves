@@ -33,7 +33,8 @@
       min-width: 320px;
       min-height: 100vh;
       min-height: 100dvh;
-      overflow: hidden;
+      overflow-x: hidden;
+      overflow-y: auto;
       color: var(--ink);
       background: var(--paper);
     }
@@ -640,6 +641,11 @@
       };
       const sourceColors = ["#d96650", "#347db9", "#8a69a8", "#bd8d21", "#39845d", "#cb6684"];
       const maxSourceCount = sourceColors.length;
+      const fieldCanvas = document.createElement("canvas");
+      const fieldContext = fieldCanvas.getContext("2d");
+      let fieldImage = null;
+      let contourDifferences = new Float32Array(0);
+      const contourIntersections = new Float32Array(8);
       let width = 0;
       let height = 0;
       let pixelRatio = 1;
@@ -780,11 +786,12 @@
         const sampleStep = 5;
         const columns = Math.ceil(width / sampleStep);
         const rows = Math.ceil(height / sampleStep);
-        const offscreen = document.createElement("canvas");
-        offscreen.width = columns;
-        offscreen.height = rows;
-        const offContext = offscreen.getContext("2d");
-        const image = offContext.createImageData(columns, rows);
+        if (fieldCanvas.width !== columns || fieldCanvas.height !== rows) {
+          fieldCanvas.width = columns;
+          fieldCanvas.height = rows;
+          fieldImage = fieldContext.createImageData(columns, rows);
+        }
+        const image = fieldImage;
         const phase = state.phase * Math.PI;
         const waveNumber = 2 * Math.PI / wavelength;
         const frequency = Number(frequencyInput.value);
@@ -807,16 +814,18 @@
             displacement /= sources.length;
             const amount = Math.abs(displacement) * 0.42;
             const offset = (row * columns + column) * 4;
-            const target = displacement >= 0 ? [52, 125, 185] : [217, 102, 80];
-            image.data[offset] = 246 + (target[0] - 246) * amount;
-            image.data[offset + 1] = 244 + (target[1] - 244) * amount;
-            image.data[offset + 2] = 236 + (target[2] - 236) * amount;
+            const targetRed = displacement >= 0 ? 52 : 217;
+            const targetGreen = displacement >= 0 ? 125 : 102;
+            const targetBlue = displacement >= 0 ? 185 : 80;
+            image.data[offset] = 246 + (targetRed - 246) * amount;
+            image.data[offset + 1] = 244 + (targetGreen - 244) * amount;
+            image.data[offset + 2] = 236 + (targetBlue - 236) * amount;
             image.data[offset + 3] = 255;
           }
         }
-        offContext.putImageData(image, 0, 0);
+        fieldContext.putImageData(image, 0, 0);
         context.imageSmoothingEnabled = true;
-        context.drawImage(offscreen, 0, 0, width, height);
+        context.drawImage(fieldCanvas, 0, 0, width, height);
       }
 
       function drawContours(sources, centerX, centerY, scale, wavelength) {
@@ -832,7 +841,9 @@
       function drawPairContours(source1, source2, phaseDifference, centerX, centerY, scale, wavelength, gridStep) {
         const columns = Math.ceil(width / gridStep) + 1;
         const rows = Math.ceil(height / gridStep) + 1;
-        const differences = new Float32Array(columns * rows);
+        const requiredValues = columns * rows;
+        if (contourDifferences.length !== requiredValues) contourDifferences = new Float32Array(requiredValues);
+        const differences = contourDifferences;
         for (let row = 0; row < rows; row++) {
           const y = (Math.min(row * gridStep, height) - centerY) / scale;
           for (let column = 0; column < columns; column++) {
@@ -868,24 +879,45 @@
             for (let column = 0; column < columns - 1; column++) {
               const x = column * gridStep;
               const y = row * gridStep;
-              const corners = [
-                { x, y, value: differences[row * columns + column] },
-                { x: Math.min(x + gridStep, width), y, value: differences[row * columns + column + 1] },
-                { x: Math.min(x + gridStep, width), y: Math.min(y + gridStep, height), value: differences[(row + 1) * columns + column + 1] },
-                { x, y: Math.min(y + gridStep, height), value: differences[(row + 1) * columns + column] }
-              ];
-              const intersections = [];
+              const right = Math.min(x + gridStep, width);
+              const bottom = Math.min(y + gridStep, height);
+              const topLeft = differences[row * columns + column];
+              const topRight = differences[row * columns + column + 1];
+              const bottomRight = differences[(row + 1) * columns + column + 1];
+              const bottomLeft = differences[(row + 1) * columns + column];
+              let intersectionCount = 0;
               for (let edge = 0; edge < 4; edge++) {
-                const start = corners[edge];
-                const end = corners[(edge + 1) % 4];
-                if ((start.value < contour.value && end.value >= contour.value) || (end.value < contour.value && start.value >= contour.value)) {
-                  const fraction = (contour.value - start.value) / (end.value - start.value);
-                  intersections.push({ x: start.x + (end.x - start.x) * fraction, y: start.y + (end.y - start.y) * fraction });
+                let startValue;
+                let endValue;
+                let startX;
+                let startY;
+                let endX;
+                let endY;
+                if (edge === 0) {
+                  startValue = topLeft; endValue = topRight;
+                  startX = x; startY = y; endX = right; endY = y;
+                } else if (edge === 1) {
+                  startValue = topRight; endValue = bottomRight;
+                  startX = right; startY = y; endX = right; endY = bottom;
+                } else if (edge === 2) {
+                  startValue = bottomRight; endValue = bottomLeft;
+                  startX = right; startY = bottom; endX = x; endY = bottom;
+                } else {
+                  startValue = bottomLeft; endValue = topLeft;
+                  startX = x; startY = bottom; endX = x; endY = y;
+                }
+                if ((startValue < contour.value && endValue >= contour.value) || (endValue < contour.value && startValue >= contour.value)) {
+                  const fraction = (contour.value - startValue) / (endValue - startValue);
+                  const offset = intersectionCount * 2;
+                  contourIntersections[offset] = startX + (endX - startX) * fraction;
+                  contourIntersections[offset + 1] = startY + (endY - startY) * fraction;
+                  intersectionCount++;
                 }
               }
-              for (let index = 0; index + 1 < intersections.length; index += 2) {
-                context.moveTo(intersections[index].x, intersections[index].y);
-                context.lineTo(intersections[index + 1].x, intersections[index + 1].y);
+              for (let index = 0; index + 1 < intersectionCount; index += 2) {
+                const offset = index * 2;
+                context.moveTo(contourIntersections[offset], contourIntersections[offset + 1]);
+                context.lineTo(contourIntersections[offset + 2], contourIntersections[offset + 3]);
               }
             }
           }
@@ -904,15 +936,25 @@
 
         positions.forEach((position, sourceIndex) => {
           const phaseFraction = sourceIndex === 0 ? 0 : state.phase / 2;
+          const farthestCorner = Math.max(
+            Math.hypot(position.x, position.y),
+            Math.hypot(width - position.x, position.y),
+            Math.hypot(position.x, height - position.y),
+            Math.hypot(width - position.x, height - position.y)
+          );
+          const maxVisibleRadius = farthestCorner / scale;
+          const phaseAdjustedRadius = maxRadius + wavelength * phaseFraction;
+          const firstOrder = Math.max(0, Math.ceil((phaseAdjustedRadius - maxVisibleRadius) / wavelength - 0.5));
+          const lastOrder = Math.floor(phaseAdjustedRadius / wavelength);
           context.save();
           context.strokeStyle = sourceColor(sourceIndex);
           context.lineWidth = 1.7;
           const drawRing = (radius, dashed) => {
-            if (radius < 0 || radius > maxRadius) return;
+            if (radius < 0 || radius > maxRadius || radius > maxVisibleRadius) return;
             const pixelRadius = Math.max(radius * scale, 0.8);
             context.globalAlpha = maxRadius > 0 ? 0.28 + 0.55 * (1 - radius / maxRadius) : 0.83;
             if (dashed) {
-              const dashPeriod = 2 * Math.PI * pixelRadius / 16;
+              const dashPeriod = 2 * Math.PI * pixelRadius / 28;
               context.setLineDash([dashPeriod * 0.58, dashPeriod * 0.42]);
             } else {
               context.setLineDash([]);
@@ -921,8 +963,7 @@
             context.arc(position.x, position.y, pixelRadius, 0, Math.PI * 2);
             context.stroke();
           };
-          for (let order = 0; order <= Math.ceil(maxRadius / wavelength) + 1; order++) {
-            const phaseAdjustedRadius = maxRadius + wavelength * phaseFraction;
+          for (let order = firstOrder; order <= lastOrder; order++) {
             drawRing(phaseAdjustedRadius - wavelength * order, false);
             drawRing(phaseAdjustedRadius - wavelength * (order + 0.5), true);
           }
